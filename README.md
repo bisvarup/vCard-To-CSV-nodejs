@@ -13,3 +13,6 @@ Special things to consider:
 - I can provide sample vCards and CSV structure
 
 # Challenge Accepted
+
+There are minor variations in v2.0, 3.0 and 4.0 
+https://en.wikipedia.org/wiki/VCard provides a lot of information on it.
