@@ -1,11 +1,13 @@
 # vCard-To-CSV-nodejs
 
 I need to convert vCards into CSV on a regular basis. Therefore I need a script (Node JS 8.10) to perform the following:
+
 - Parse vCard files (vcf V3.0/V4.0) for contacts. Files can contain multiple contacts.
 - Obey to a mapping from vCard fields to CSV fields (must be customizable)
 - Create a CSV with fields from a mapping table
 
 Special things to consider:
+
 - vCard files contain custom values (e.g. X-SocialProfile)
 - CSV file has defined structure. Not all fields are provided by each vCard. The CSV has to be filled with all fields from the mapping in the same order
 - The mapping has to be configurable later on
@@ -14,5 +16,12 @@ Special things to consider:
 
 # Challenge Accepted
 
-There are minor variations in v2.0, 3.0 and 4.0 
+There are minor variations in v2.0, 3.0 and 4.0
 https://en.wikipedia.org/wiki/VCard provides a lot of information on it.
+
+# Solution
+
+The vCard npm module does the work of parsing vCard to json format. It works well with version 2, 3, 4. So I shall use this npm module to parse the data to json. After that I have to do these:
+
+1. Wherever the value is an array join it and convert it to String.
+   1.1. Object is deep so it has to be done recursively.
