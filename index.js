@@ -1,73 +1,54 @@
-var vCard = require("vcard-parser");
-const util = require("util");
-const fs = require("fs");
+const ObjectsToCsv = require("objects-to-csv");
+const { performance } = require("perf_hooks");
+const { parseVCard } = require("./parseCards.js");
 
-fs.readFile("john-doe.vcf", (err, data) => {
-  if (err) throw err;
+const END = "END:VCARD";
+
+const vCardFile = "./john-doe.vcf";
+var lineReader = require("readline").createInterface({
+  input: require("fs").createReadStream(vCardFile)
+});
+let vCards = [];
+let buffer = "";
+lineReader.on("line", function(line) {
+  if (line !== END) buffer += line + "\r\n";
   else {
-    data = data.toString();
-    var card = convertArrayOfStringToString(vCard.parse(data));
-    card = formatMeta(card);
-    card = generateUnnestedJson(card);
-    console.log(card);
-    fs.writeFile("formated.txt", JSON.stringify(card, null, 2), () => {
-      if (err) throw err;
-    });
+    vCards.push(parseVCard(buffer));
+    buffer = "";
   }
 });
 
-function isArrayOfString(ar) {
-  let bool = true;
-  ar.forEach(e => {
-    if (typeof e !== "string") bool = false;
-  });
-  if (bool) return true;
-  return false;
+lineReader.on("close", () => {
+  let keys = {};
+  for (let i = 0; i < vCards.length; i++) keys = detectKeys(vCards[i], keys);
+  keys = Object.keys(keys);
+  vCards = normalizeCards(vCards, keys);
+  saveCSVtoDisk(vCards);
+});
+
+function saveCSVtoDisk(vCards) {
+  (async () => {
+    let csv = new ObjectsToCsv(vCards);
+    const OUTPUT_PATH = "./output.csv";
+    await csv.toDisk(OUTPUT_PATH);
+    console.log("saved csv to disk");
+  })();
 }
 
-function convertArrayOfStringToString(obj) {
-  Object.keys(obj).forEach(o => {
-    if (obj[o] instanceof Array) {
-      if (isArrayOfString(obj[o])) {
-        obj[o] = obj[o].join(" ").trim();
-      } else {
-        if (typeof obj[o] === "object")
-          obj[o] = convertArrayOfStringToString(obj[o]);
+function normalizeCards(vCards, keys) {
+  for (let i = 0; i < vCards.length; i++) {
+    for (let j = 0; j < keys.length; j++) {
+      if (!vCards[i][keys[j]]) {
+        vCards[i][keys[j]] = null;
       }
-    } else if (typeof obj[o] === "object") {
-      obj[o] = convertArrayOfStringToString(obj[o]);
     }
-  });
-  return obj;
+  }
+  return vCards;
 }
 
-function formatMeta(obj) {
-  Object.keys(obj).forEach(e => {
-    if (e.toString() === "meta") {
-      let meta = obj[e];
-      Object.keys(meta).forEach(m => {
-        obj[m] = meta[m];
-      });
-      delete obj[e];
-    } else if (typeof obj[e] === "object") {
-      obj[e] = formatMeta(obj[e]);
-    }
-  });
-  return obj;
-}
-
-function generateUnnestedJson(obj) {
-  var json = {};
+function detectKeys(obj, keys = {}) {
   Object.keys(obj).forEach(o => {
-    let ar = obj[o];
-    let str = o.toString();
-    ar.forEach(elem => {
-      if (elem["type"]) {
-        json[str + " " + elem["type"]] = elem["value"];
-      } else {
-        json[str] = elem["value"];
-      }
-    });
+    if (keys[o] === undefined) keys[o] = true;
   });
-  return json;
+  return keys;
 }
