@@ -19,9 +19,8 @@ Special things to consider:
 There are minor variations in v2.0, 3.0 and 4.0
 https://en.wikipedia.org/wiki/VCard provides a lot of information on it.
 
-# Solution
+# TODO
 
-The vCard npm module does the work of parsing vCard to json format. It works well with version 2, 3, 4. So I shall use this npm module to parse the data to json. After that I have to do these:
-
-1. Wherever the value is an array join it and convert it to String.
-   1.1. Object is deep so it has to be done recursively.
+1. Create a folder called vcf_files lets say.
+2. The code will operate on all the files in the folder and make the csv file.
+3. Make a config file where some of the application config will be stored.

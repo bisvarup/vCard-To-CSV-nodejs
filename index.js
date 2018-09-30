@@ -1,5 +1,4 @@
 const ObjectsToCsv = require("objects-to-csv");
-const { performance } = require("perf_hooks");
 const { parseVCard } = require("./parseCards.js");
 
 const END = "END:VCARD";
