@@ -15,36 +15,36 @@ const optionDefinitions = [
 ];
 const options = commandLineArgs(optionDefinitions);
 
-const bootstrap = require("./bootstrap");
-console.log(bootstrap);
+(async () => {
+  await require("./bootstrap")();
+  const vCardFile = config.input_file;
 
-const vCardFile = config.input_file;
+  var lineReader = require("readline").createInterface({
+    input: require("fs").createReadStream(vCardFile)
+  });
+  let vCards = [];
+  let buffer = "";
 
-var lineReader = require("readline").createInterface({
-  input: require("fs").createReadStream(vCardFile)
-});
-let vCards = [];
-let buffer = "";
+  /**
+   * Read the file line by line and push each line
+   * to an array. Till there is data keep making this array.
+   */
+  lineReader.on("line", function(line) {
+    if (line !== END) buffer += line + "\r\n";
+    else {
+      vCards.push(parseVCard(buffer));
+      buffer = "";
+    }
+  });
 
-/**
- * Read the file line by line and push each line
- * to an array. Till there is data keep making this array.
- */
-lineReader.on("line", function(line) {
-  if (line !== END) buffer += line + "\r\n";
-  else {
-    vCards.push(parseVCard(buffer));
-    buffer = "";
-  }
-});
-
-lineReader.on("close", () => {
-  let keys = {};
-  for (let i = 0; i < vCards.length; i++) keys = detectKeys(vCards[i], keys);
-  keys = Object.keys(keys);
-  vCards = normalizeCards(vCards, keys);
-  saveCSVtoDisk(vCards);
-});
+  lineReader.on("close", () => {
+    let keys = {};
+    for (let i = 0; i < vCards.length; i++) keys = detectKeys(vCards[i], keys);
+    keys = Object.keys(keys);
+    vCards = normalizeCards(vCards, keys);
+    saveCSVtoDisk(vCards);
+  });
+})();
 
 /**
  * Save a vCard array of csv to disk
