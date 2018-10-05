@@ -97,16 +97,19 @@ function checkOutputFolder() {
 // operate on input file
 function checkInputFile() {
   return new Promise((resolve, reject) => {
-    if (config.input_file !== null || config.input_file != "") {
-      stats.input_path_exist = fs.existsSync(config.input_file);
-      if (stats.input_path_exist) {
-        helper.printGreen("Input file exists");
-        resolve();
-      } else {
-        helper.printRed("Input file does not exist.");
-        all_ok = false;
-        resolve();
+    for (let i = 0; i < config.input_files.length; i++) {
+      const input_file = config.input_files[i];
+      if (input_file !== null || input_file != "") {
+        stats.input_path_exist = fs.existsSync(input_file);
+        if (stats.input_path_exist) {
+          helper.printGreen("Input file exists");
+        } else {
+          helper.printRed("Input file does not exist.");
+          all_ok = false;
+          resolve();
+        }
       }
     }
+    resolve();
   });
 }

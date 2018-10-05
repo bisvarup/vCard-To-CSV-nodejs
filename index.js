@@ -1,27 +1,70 @@
 const ObjectsToCsv = require("objects-to-csv");
-const chalk = require("chalk");
-const path = require("path");
 const commandLineArgs = require("command-line-args");
+const path = require("path");
 const { parseVCard } = require("./lib/parseCards.js");
+const fs = require("fs");
 const config = require("./config.js");
+const helper = require("./utils/helper");
+
 const END = "END:VCARD";
 
 const optionDefinitions = [
-  { name: "verbose", alias: "v", type: Boolean },
   { name: "files", type: String, multiple: true },
   { name: "folder", alias: "f", type: String },
   { name: "output", alias: "o", type: String },
   { name: "help", alias: "h", type: Boolean }
 ];
 const options = commandLineArgs(optionDefinitions);
-
 (async () => {
-  await require("./bootstrap")();
-  const vCardFile = config.input_file;
+  const proceed = await require("./bootstrap")();
+  if (!proceed) {
+    helper.printRed(
+      "Sorry one or more of the essential requirements to run this application is not met. Please see the previous messages and retry again."
+    );
+  }
+  const vCardFiles = config.input_files;
 
-  var lineReader = require("readline").createInterface({
-    input: require("fs").createReadStream(vCardFile)
-  });
+  /**
+   * If the user provided a list of files then
+   * just iterate through the files and add a
+   * readline listener to each of them.
+   *
+   * If a folder is given then operate on each file of the
+   * folder but check before if the file is a
+   * valid vcf file or not.
+   */
+
+  if (vCardFiles.length > 0) {
+    /**
+     * There can be more than one file so for that purpose
+     * run a loop for all the files in the array.
+     */
+    vCardFiles.forEach(vCardFile => {
+      lineReader = require("readline").createInterface({
+        input: fs.createReadStream(vCardFile)
+      });
+    });
+    initiateReadingFiles();
+  } else {
+    // do it for every file in the input directory
+    fs.readdir(config.input_folder, "utf8", (err, files) => {
+      if (err) {
+        console.log({ err });
+      } else {
+        files.filter(f => f.endsWith("vcf")).forEach(vCardFile => {
+          lineReader = require("readline").createInterface({
+            input: fs.createReadStream(
+              path.join(config.input_folder, vCardFile)
+            )
+          });
+        });
+        initiateReadingFiles();
+      }
+    });
+  }
+})();
+
+function initiateReadingFiles() {
   let vCards = [];
   let buffer = "";
 
@@ -44,7 +87,7 @@ const options = commandLineArgs(optionDefinitions);
     vCards = normalizeCards(vCards, keys);
     saveCSVtoDisk(vCards);
   });
-})();
+}
 
 /**
  * Save a vCard array of csv to disk
