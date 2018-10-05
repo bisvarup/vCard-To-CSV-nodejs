@@ -24,3 +24,7 @@ https://en.wikipedia.org/wiki/VCard provides a lot of information on it.
 1. Create a folder called vcf_files lets say.
 2. The code will operate on all the files in the folder and make the csv file.
 3. Make a config file where some of the application config will be stored.
+
+# TODO 10/5/18
+
+1. Error creating output.csv when creating new folders. I suspect its the async nature. Fix it.

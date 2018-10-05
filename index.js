@@ -1,14 +1,35 @@
 const ObjectsToCsv = require("objects-to-csv");
-const { parseVCard } = require("./parseCards.js");
-
+const chalk = require("chalk");
+const path = require("path");
+const commandLineArgs = require("command-line-args");
+const { parseVCard } = require("./lib/parseCards.js");
+const config = require("./config.js");
 const END = "END:VCARD";
 
-const vCardFile = "./john-doe.vcf";
+const optionDefinitions = [
+  { name: "verbose", alias: "v", type: Boolean },
+  { name: "files", type: String, multiple: true },
+  { name: "folder", alias: "f", type: String },
+  { name: "output", alias: "o", type: String },
+  { name: "help", alias: "h", type: Boolean }
+];
+const options = commandLineArgs(optionDefinitions);
+
+const bootstrap = require("./bootstrap");
+console.log(bootstrap);
+
+const vCardFile = config.input_file;
+
 var lineReader = require("readline").createInterface({
   input: require("fs").createReadStream(vCardFile)
 });
 let vCards = [];
 let buffer = "";
+
+/**
+ * Read the file line by line and push each line
+ * to an array. Till there is data keep making this array.
+ */
 lineReader.on("line", function(line) {
   if (line !== END) buffer += line + "\r\n";
   else {
@@ -25,15 +46,24 @@ lineReader.on("close", () => {
   saveCSVtoDisk(vCards);
 });
 
+/**
+ * Save a vCard array of csv to disk
+ * @param {Array} vCards
+ */
 function saveCSVtoDisk(vCards) {
   (async () => {
     let csv = new ObjectsToCsv(vCards);
-    const OUTPUT_PATH = "./output.csv";
+    const OUTPUT_PATH = config.output_file;
     await csv.toDisk(OUTPUT_PATH);
     console.log("saved csv to disk");
   })();
 }
 
+/**
+ *
+ * @param {*} vCards
+ * @param {*} keys
+ */
 function normalizeCards(vCards, keys) {
   for (let i = 0; i < vCards.length; i++) {
     for (let j = 0; j < keys.length; j++) {
@@ -45,6 +75,11 @@ function normalizeCards(vCards, keys) {
   return vCards;
 }
 
+/**
+ *
+ * @param {*} obj
+ * @param {*} keys
+ */
 function detectKeys(obj, keys = {}) {
   Object.keys(obj).forEach(o => {
     if (keys[o] === undefined) keys[o] = true;
