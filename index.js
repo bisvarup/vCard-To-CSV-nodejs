@@ -1,26 +1,19 @@
 const ObjectsToCsv = require("objects-to-csv");
-const commandLineArgs = require("command-line-args");
 const path = require("path");
 const { parseVCard } = require("./lib/parseCards.js");
 const fs = require("fs");
 const config = require("./config.js");
 const helper = require("./utils/helper");
-
 const END = "END:VCARD";
 
-const optionDefinitions = [
-  { name: "files", type: String, multiple: true },
-  { name: "folder", alias: "f", type: String },
-  { name: "output", alias: "o", type: String },
-  { name: "help", alias: "h", type: Boolean }
-];
-const options = commandLineArgs(optionDefinitions);
+const commandOptions = require("./commandLine");
 (async () => {
   const proceed = await require("./bootstrap")();
   if (!proceed) {
     helper.printRed(
       "Sorry one or more of the essential requirements to run this application is not met. Please see the previous messages and retry again."
     );
+    process.exit(0);
   }
   const vCardFiles = config.input_files;
 
