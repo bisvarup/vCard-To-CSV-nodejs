@@ -28,3 +28,7 @@ https://en.wikipedia.org/wiki/VCard provides a lot of information on it.
 # TODO 10/5/18
 
 1. Error creating output.csv when creating new folders. I suspect its the async nature. Fix it.
+
+# TODO 10/6/2018
+
+1. Make commandline version.
